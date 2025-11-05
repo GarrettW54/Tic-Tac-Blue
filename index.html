@@ -1,3 +1,106 @@
+]<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tic Tac Blue</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: linear-gradient(135deg, #001aff, #7f00ff);
+  color: white;
+}
+
+h1 {
+  margin-top: 20px;
+  font-size: 40px;
+  text-shadow: 0 0 10px cyan;
+}
+
+#gameContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(3, 120px);
+  grid-gap: 8px;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 120px;
+  height: 120px;
+  background: rgba(0,0,0,0.25);
+  border: 2px solid white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 70px;
+  font-weight:700;
+  border-radius: 12px;
+  transition: .15s;
+}
+
+.cell:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.x { color: #ff2a2a; text-shadow: 0 0 10px #ff4a4a; } /* red X */
+.o { color: #32a1ff; text-shadow: 0 0 10px #00c8ff; } /* blue O */
+
+.win {
+  background: yellow !important;
+  color: black !important;
+}
+
+button {
+  padding: 10px 18px;
+  margin: 8px;
+  border: none;
+  background: #00eaff;
+  color: black;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: .2s;
+}
+
+button:hover {
+  background: white;
+}
+
+#status {
+  margin-top: 15px;
+  font-size: 24px;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h1>🎮 Tic Tac Blue</h1>
+
+<div id="gameContainer">
+
+  <div>
+    <button onclick="setMode('cpu')">CPU Mode</button>
+    <button onclick="setMode('2p')">2-Player</button>
+    <button onclick="restart()">Restart</button>
+  </div>
+
+  <div id="status">Player X's turn</div>
+
+  <div id="board"></div>
+
+</div>
+
 <script>
 let board = Array(9).fill(null);
 let current = 'X';
@@ -13,11 +116,6 @@ function buildBoard(){
     const c = document.createElement("div");
     c.className="cell";
     c.dataset.i=i;
-
-    const inner=document.createElement("div");
-    inner.className="cell-inner";
-    c.appendChild(inner);
-
     c.addEventListener("click",()=> playerMove(i));
     boardEl.appendChild(c);
   }
@@ -42,12 +140,11 @@ function place(i,player){
   board[i] = player;
   const cell = boardEl.querySelector(`[data-i='${i}']`);
   cell.classList.add(player.toLowerCase());
-  cell.querySelector(".cell-inner").textContent = player==="X"?"✕":"◯";
+  cell.textContent = player==="X"?"✕":"◯";
   current = current === "X" ? "O" : "X";
   updateStatus();
 }
 
-/* ✅ Real Tic Tac Toe AI — Correct Win Blocking */
 function cpuMove(){
   if(!running) return;
 
@@ -61,30 +158,24 @@ function cpuMove(){
 function bestMove(){
   const empty = board.map((v,i)=>v?null:i).filter(v=>v!==null);
 
-  // Try to win
   for(let i of empty){
     board[i]="O";
     if(checkWin()==="O"){ board[i]=null; return i; }
     board[i]=null;
   }
 
-  // Block the player
   for(let i of empty){
     board[i]="X";
     if(checkWin()==="X"){ board[i]=null; return i; }
     board[i]=null;
   }
 
-  if(board[4]==null) return 4; // center
-
-  // corners
+  if(board[4]==null) return 4;
   const corners=[0,2,6,8].filter(i=>board[i]==null);
   if(corners.length) return corners[Math.floor(Math.random()*corners.length)];
-
   return empty[Math.floor(Math.random()*empty.length)];
 }
 
-/* ✅ Win System FIXED */
 const wins=[
  [0,1,2],[3,4,5],[6,7,8],
  [0,3,6],[1,4,7],[2,5,8],
@@ -104,11 +195,10 @@ function highlight(winCombo){
   });
 }
 
-/* ✅ Central end checker — fixes win timing */
 function endCheck(winner){
   if(winner){
     running = false;
-    highlightWinCombo(winner);
+    highlightWinning(winner);
     statusEl.textContent = `Player ${winner} Wins!`;
     return true;
   }
@@ -120,7 +210,7 @@ function endCheck(winner){
   return false;
 }
 
-function highlightWinCombo(winner){
+function highlightWinning(winner){
   for(const combo of wins){
     if(board[combo[0]]===winner && board[combo[1]]===winner && board[combo[2]]===winner){
       highlight(combo);
@@ -144,3 +234,6 @@ function setMode(m){
   mode=m; restart();
 }
 </script>
+
+</body>
+</html>
