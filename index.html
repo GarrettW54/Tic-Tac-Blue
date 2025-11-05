@@ -1,296 +1,220 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tic Tac Toe — Blue & Neon Purple</title>
-  <style>
-    :root{
-      --bg-left: #001f7a;       /* deep blue */
-      --bg-right: #9b30ff;      /* neon purple */
-      --panel: rgba(255,255,255,0.06);
-      --glass: rgba(255,255,255,0.06);
-      --x-color: #ff3b30;       /* red X */
-      --o-color: #007aff;       /* blue O */
-      --accent: rgba(255,255,255,0.08);
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tic Tac Blue</title>
+<style>
+/* same neon background */
+html,body{
+  height:100%; margin:0;
+  font-family: Inter, sans-serif;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg,#001f7a,#9b30ff);
+  color:white;
+}
 
-    html,body{
-      height:100%;
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: radial-gradient(1200px 600px at 10% 20%, rgba(155,48,255,0.12), transparent),
-                  radial-gradient(1000px 500px at 90% 80%, rgba(0,122,255,0.08), transparent),
-                  linear-gradient(135deg, var(--bg-left), var(--bg-right));
-      color:#fff;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
+/* container */
+.container{
+  width:360px; max-width:92vw;
+  padding:20px; text-align:center;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(6px);
+  border-radius:14px;
+  box-shadow:0 10px 40px rgba(0,0,0,.45);
+}
 
-    .container{
-      width:360px;
-      max-width:92vw;
-      padding:20px;
-      border-radius:14px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.45);
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      backdrop-filter: blur(6px);
-      text-align:center;
-    }
+/* board */
+.board{
+  display:grid; gap:10px;
+  grid-template-columns:repeat(3,1fr);
+  padding:12px; margin-top:10px;
+}
+.cell{
+  width:100%; padding-top:100%;
+  position:relative; border-radius:10px; cursor:pointer;
+  background:rgba(255,255,255,0.1);
+  border:2px solid rgba(255,255,255,0.12);
+  transition:.1s;
+}
+.cell:active{transform:scale(.97);}
+.cell-inner{
+  position:absolute; inset:0;
+  display:flex; justify-content:center; align-items:center;
+  font-size:54px; font-weight:800;
+  text-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.cell.x .cell-inner{ color:#ff3b30; } /* red X */
+.cell.o .cell-inner{ color:#007aff; } /* blue O */
+.cell.win{outline:4px solid rgba(255,255,255,0.3); box-shadow:0 0 18px white inset;}
 
-    h1{
-      margin:0 0 12px 0;
-      font-size:20px;
-      letter-spacing:0.6px;
-      font-weight:700;
-    }
-    .status{
-      font-size:14px;
-      margin-bottom:12px;
-      opacity:0.95;
-    }
-
-    /* board */
-    .board{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      padding:12px;
-      border-radius:10px;
-    }
-
-    .cell{
-      width:100%;
-      padding-top:100%; /* square */
-      position:relative;
-      border-radius:8px;
-      cursor:pointer;
-      user-select:none;
-      box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3);
-      transition: transform .08s ease, box-shadow .08s ease;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
-      border: 1px solid rgba(255,255,255,0.03);
-    }
-
-    .cell:active{ transform: scale(.985); }
-
-    .cell-inner{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:54px;
-      font-weight:800;
-      color:var(--x-color); /* default X color */
-      -webkit-text-stroke: 0.6px rgba(0,0,0,0.16);
-      text-shadow: 0 6px 18px rgba(0,0,0,0.35);
-    }
-
-    .cell.o .cell-inner{ color: var(--o-color); } /* O color */
-    .cell.x .cell-inner{ color: var(--x-color); } /* X color */
-
-    .cell.win {
-      box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 18px rgba(255,255,255,0.02) inset;
-      outline: 3px solid rgba(255,255,255,0.06);
-      transform: translateY(-3px);
-    }
-
-    .controls{
-      display:flex;
-      gap:8px;
-      margin-top:14px;
-      justify-content:center;
-    }
-
-    .btn{
-      background: var(--panel);
-      border: 1px solid rgba(255,255,255,0.06);
-      color:#fff;
-      padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
-      font-weight:700;
-      letter-spacing:0.6px;
-      transition: transform .08s ease, background .12s ease;
-    }
-    .btn:hover{ transform: translateY(-3px); }
-
-    .small{
-      margin-top:10px;
-      opacity:0.9;
-      font-size:13px;
-    }
-
-    /* winning line indicator (for accessibility visual) */
-    .line {
-      position:absolute;
-      left:0;right:0;top:0;bottom:0;
-      pointer-events:none;
-    }
-
-    @media (max-width:420px){
-      .cell-inner{ font-size:44px; }
-    }
-  </style>
+/* buttons */
+button{
+  margin:6px; padding:10px 14px;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:white; font-weight:700;
+  border-radius:10px; cursor:pointer;
+}
+button:hover{transform:translateY(-2px);}
+</style>
 </head>
+
 <body>
-  <div class="container" role="application" aria-label="Tic Tac Toe Game">
-    <h1>Tic Tac Toe</h1>
-    <div id="status" class="status" aria-live="polite">Player X's turn</div>
+<div class="container">
+  <h2>Tic Tac Blue</h2>
+  <div id="status">Player X's turn</div>
 
-    <div id="board" class="board" role="grid" aria-label="Tic tac toe board">
-      <!-- cells created by JS -->
-    </div>
-
-    <div class="controls">
-      <button id="restart" class="btn" aria-label="Restart game">Restart</button>
-      <button id="swap" class="btn" aria-label="Swap starting player">Swap Start</button>
-    </div>
-
-    <div class="small">X = <span style="color:#ff3b30;font-weight:800">Red</span> · O = <span style="color:#007aff;font-weight:800">Blue</span></div>
+  <div style="margin-top:8px;">
+    <button onclick="setMode('2p')">2 Player</button>
+    <button onclick="setMode('cpu')">CPU Mode</button>
   </div>
 
+  <div id="board" class="board"></div>
+  <button onclick="restart()">Restart</button>
+</div>
+
 <script>
-  // Game state
-  const boardEl = document.getElementById('board');
-  const statusEl = document.getElementById('status');
-  const restartBtn = document.getElementById('restart');
-  const swapBtn = document.getElementById('swap');
+// ---- Game State ----
+let board = Array(9).fill(null);
+let current = 'X';
+let running = true;
+let mode = '2p'; // default 2 player
 
-  let board = Array(9).fill(null); // null, 'X', 'O'
-  let current = 'X';
-  let running = true;
-  let startsWith = 'X';
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
 
-  // Winning combinations
-  const WINS = [
-    [0,1,2],[3,4,5],[6,7,8], // rows
-    [0,3,6],[1,4,7],[2,5,8], // cols
-    [0,4,8],[2,4,6]          // diagonals
-  ];
+// ---- Build Board ----
+function buildBoard(){
+  boardEl.innerHTML = "";
+  for(let i=0;i<9;i++){
+    const c = document.createElement("div");
+    c.className="cell";
+    c.dataset.i=i;
 
-  // create cells
-  function buildBoard(){
-    boardEl.innerHTML = '';
-    for(let i=0;i<9;i++){
-      const cell = document.createElement('button');
-      cell.className = 'cell';
-      cell.setAttribute('data-i', i);
-      cell.setAttribute('role','gridcell');
-      cell.setAttribute('aria-label', `Cell ${i+1}`);
-      // inner element for big X/O
-      const inner = document.createElement('div');
-      inner.className = 'cell-inner';
-      inner.textContent = '';
-      cell.appendChild(inner);
-      cell.addEventListener('click', ()=> onCellClick(i));
-      boardEl.appendChild(cell);
-    }
+    const inner=document.createElement("div");
+    inner.className="cell-inner";
+    c.appendChild(inner);
+
+    c.addEventListener("click",()=> playerMove(i));
+    boardEl.appendChild(c);
   }
+}
+buildBoard();
 
-  function onCellClick(i){
-    if(!running) return;
-    if(board[i]) return; // occupied
-    board[i] = current;
-    renderCell(i);
-    const win = checkWin();
-    if(win){
-      endGame(win);
-      return;
-    }
-    if(board.every(v=>v!==null)){
-      drawGame();
-      return;
-    }
-    current = current === 'X' ? 'O' : 'X';
-    updateStatus();
+// ---- Player Click ----
+function playerMove(i){
+  if(!running || board[i]) return;
+  if(mode==="cpu" && current==="O") return;
+
+  place(i,current);
+  if(checkEnd()) return;
+
+  if(mode==="cpu"){
+    setTimeout(cpuMove,400);
   }
+}
 
-  function renderCell(i){
-    const cell = boardEl.querySelector(`.cell[data-i="${i}"]`);
-    cell.classList.remove('x','o','win');
-    if(board[i] === 'X'){
-      cell.classList.add('x');
-      cell.querySelector('.cell-inner').textContent = '✕';
-    } else if(board[i] === 'O'){
-      cell.classList.add('o');
-      cell.querySelector('.cell-inner').textContent = '◯';
-    }
-  }
-
-  function updateStatus(){
-    statusEl.textContent = running ? `Player ${current}'s turn` : statusEl.textContent;
-  }
-
-  function checkWin(){
-    for(const combo of WINS){
-      const [a,b,c] = combo;
-      if(board[a] && board[a] === board[b] && board[a] === board[c]){
-        return { winner: board[a], combo };
-      }
-    }
-    return null;
-  }
-
-  function highlightCombo(combo){
-    combo.forEach(i=>{
-      const cell = boardEl.querySelector(`.cell[data-i="${i}"]`);
-      if(cell) cell.classList.add('win');
-    });
-  }
-
-  function endGame(result){
-    running = false;
-    highlightCombo(result.combo);
-    statusEl.textContent = `Player ${result.winner} wins!`;
-  }
-
-  function drawGame(){
-    running = false;
-    statusEl.textContent = "It's a draw!";
-  }
-
-  function restart(){
-    board = Array(9).fill(null);
-    current = startsWith;
-    running = true;
-    buildBoard();
-    updateStatus();
-  }
-
-  // swap who starts next
-  function swapStart(){
-    startsWith = startsWith === 'X' ? 'O' : 'X';
-    restart();
-  }
-
-  // keyboard support: number keys 1-9 map to cells
-  window.addEventListener('keydown', (e)=>{
-    if(!running) return;
-    const k = e.key;
-    if(/^[1-9]$/.test(k)){
-      const idx = parseInt(k,10) - 1; // 1->0
-      onCellClick(idx);
-    }
-    if(k === ' '){
-      e.preventDefault();
-      // space to restart when not running
-      if(!running) restart();
-    }
-  });
-
-  // attach buttons
-  restartBtn.addEventListener('click', restart);
-  swapBtn.addEventListener('click', swapStart);
-
-  // init
-  buildBoard();
+// ---- Place Move ----
+function place(i,player){
+  board[i]=player;
+  const cell=boardEl.querySelector(`[data-i='${i}']`);
+  cell.classList.add(player.toLowerCase());
+  cell.querySelector(".cell-inner").textContent=player==="X"?"✕":"◯";
+  current = current==="X"?"O":"X";
   updateStatus();
+}
+
+// ---- CPU Logic ----
+function cpuMove(){
+  if(!running) return;
+
+  // CPU = O, user = X
+  let move = bestMove();
+  place(move,"O");
+  checkEnd();
+}
+
+// AI Strategy (simple smart)
+function bestMove(){
+  const empty = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+
+  // CPU win?
+  for(let i of empty){
+    board[i]="O";
+    if(checkWin()) { board[i]=null; return i; }
+    board[i]=null;
+  }
+  // Block X?
+  for(let i of empty){
+    board[i]="X";
+    if(checkWin()) { board[i]=null; return i; }
+    board[i]=null;
+  }
+  // Center
+  if(board[4]==null) return 4;
+  // Corners first
+  const corners=[0,2,6,8].filter(i=>board[i]==null);
+  if(corners.length) return corners[Math.floor(Math.random()*corners.length)];
+  // random remaining
+  return empty[Math.floor(Math.random()*empty.length)];
+}
+
+// ---- Check Win/Draw ----
+const wins=[
+ [0,1,2],[3,4,5],[6,7,8],
+ [0,3,6],[1,4,7],[2,5,8],
+ [0,4,8],[2,4,6]
+];
+
+function checkWin(){
+  for(const [a,b,c] of wins){
+    if(board[a] && board[a]===board[b] && board[a]===board[c]){
+      highlight([a,b,c]);
+      return board[a];
+    }
+  }
+  return null;
+}
+
+function checkEnd(){
+  const w = checkWin();
+  if(w){
+    running=false;
+    statusEl.textContent = `Player ${w} wins!`;
+    return true;
+  }
+  if(board.every(v=>v!==null)){
+    running=false;
+    statusEl.textContent = "Draw!";
+    return true;
+  }
+  return false;
+}
+
+function highlight(combo){
+  combo.forEach(i=>{
+    boardEl.querySelector(`[data-i='${i}']`).classList.add("win");
+  });
+}
+
+// ---- UI ----
+function updateStatus(){
+  if(!running) return;
+  statusEl.textContent=`Player ${current}'s turn ${mode==="cpu"?"(vs CPU)":""}`;
+}
+
+function restart(){
+  board=Array(9).fill(null);
+  current="X"; running=true;
+  buildBoard();
+  statusEl.textContent=`Player X's turn${mode==="cpu"?" (vs CPU)":""}`;
+}
+
+function setMode(m){
+  mode=m;
+  restart();
+}
 </script>
 </body>
 </html>
