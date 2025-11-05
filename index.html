@@ -1,90 +1,12 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Tic Tac Blue</title>
-<style>
-/* same neon background */
-html,body{
-  height:100%; margin:0;
-  font-family: Inter, sans-serif;
-  display:flex; align-items:center; justify-content:center;
-  background: linear-gradient(135deg,#001f7a,#9b30ff);
-  color:white;
-}
-
-/* container */
-.container{
-  width:360px; max-width:92vw;
-  padding:20px; text-align:center;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(6px);
-  border-radius:14px;
-  box-shadow:0 10px 40px rgba(0,0,0,.45);
-}
-
-/* board */
-.board{
-  display:grid; gap:10px;
-  grid-template-columns:repeat(3,1fr);
-  padding:12px; margin-top:10px;
-}
-.cell{
-  width:100%; padding-top:100%;
-  position:relative; border-radius:10px; cursor:pointer;
-  background:rgba(255,255,255,0.1);
-  border:2px solid rgba(255,255,255,0.12);
-  transition:.1s;
-}
-.cell:active{transform:scale(.97);}
-.cell-inner{
-  position:absolute; inset:0;
-  display:flex; justify-content:center; align-items:center;
-  font-size:54px; font-weight:800;
-  text-shadow:0 4px 12px rgba(0,0,0,.4);
-}
-.cell.x .cell-inner{ color:#ff3b30; } /* red X */
-.cell.o .cell-inner{ color:#007aff; } /* blue O */
-.cell.win{outline:4px solid rgba(255,255,255,0.3); box-shadow:0 0 18px white inset;}
-
-/* buttons */
-button{
-  margin:6px; padding:10px 14px;
-  background:rgba(255,255,255,0.1);
-  border:1px solid rgba(255,255,255,0.2);
-  color:white; font-weight:700;
-  border-radius:10px; cursor:pointer;
-}
-button:hover{transform:translateY(-2px);}
-</style>
-</head>
-
-<body>
-<div class="container">
-  <h2>Tic Tac Blue</h2>
-  <div id="status">Player X's turn</div>
-
-  <div style="margin-top:8px;">
-    <button onclick="setMode('2p')">2 Player</button>
-    <button onclick="setMode('cpu')">CPU Mode</button>
-  </div>
-
-  <div id="board" class="board"></div>
-  <button onclick="restart()">Restart</button>
-</div>
-
 <script>
-// ---- Game State ----
 let board = Array(9).fill(null);
 let current = 'X';
 let running = true;
-let mode = '2p'; // default 2 player
+let mode = '2p';
 
 const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
 
-// ---- Build Board ----
 function buildBoard(){
   boardEl.innerHTML = "";
   for(let i=0;i<9;i++){
@@ -102,65 +24,67 @@ function buildBoard(){
 }
 buildBoard();
 
-// ---- Player Click ----
 function playerMove(i){
   if(!running || board[i]) return;
   if(mode==="cpu" && current==="O") return;
 
-  place(i,current);
-  if(checkEnd()) return;
+  place(i, current);
 
-  if(mode==="cpu"){
-    setTimeout(cpuMove,400);
+  let winner = checkWin();
+  if(endCheck(winner)) return;
+
+  if(mode==="cpu" && current==="O"){
+    setTimeout(cpuMove, 450);
   }
 }
 
-// ---- Place Move ----
 function place(i,player){
-  board[i]=player;
-  const cell=boardEl.querySelector(`[data-i='${i}']`);
+  board[i] = player;
+  const cell = boardEl.querySelector(`[data-i='${i}']`);
   cell.classList.add(player.toLowerCase());
-  cell.querySelector(".cell-inner").textContent=player==="X"?"✕":"◯";
-  current = current==="X"?"O":"X";
+  cell.querySelector(".cell-inner").textContent = player==="X"?"✕":"◯";
+  current = current === "X" ? "O" : "X";
   updateStatus();
 }
 
-// ---- CPU Logic ----
+/* ✅ Real Tic Tac Toe AI — Correct Win Blocking */
 function cpuMove(){
   if(!running) return;
 
-  // CPU = O, user = X
   let move = bestMove();
-  place(move,"O");
-  checkEnd();
+  place(move, "O");
+
+  let winner = checkWin();
+  endCheck(winner);
 }
 
-// AI Strategy (simple smart)
 function bestMove(){
   const empty = board.map((v,i)=>v?null:i).filter(v=>v!==null);
 
-  // CPU win?
+  // Try to win
   for(let i of empty){
     board[i]="O";
-    if(checkWin()) { board[i]=null; return i; }
+    if(checkWin()==="O"){ board[i]=null; return i; }
     board[i]=null;
   }
-  // Block X?
+
+  // Block the player
   for(let i of empty){
     board[i]="X";
-    if(checkWin()) { board[i]=null; return i; }
+    if(checkWin()==="X"){ board[i]=null; return i; }
     board[i]=null;
   }
-  // Center
-  if(board[4]==null) return 4;
-  // Corners first
+
+  if(board[4]==null) return 4; // center
+
+  // corners
   const corners=[0,2,6,8].filter(i=>board[i]==null);
   if(corners.length) return corners[Math.floor(Math.random()*corners.length)];
-  // random remaining
+
   return empty[Math.floor(Math.random()*empty.length)];
 }
 
-// ---- Check Win/Draw ----
+/* ✅ Win System FIXED */
 const wins=[
  [0,1,2],[3,4,5],[6,7,8],
  [0,3,6],[1,4,7],[2,5,8],
@@ -169,52 +93,54 @@ const wins=[
 
 function checkWin(){
   for(const [a,b,c] of wins){
-    if(board[a] && board[a]===board[b] && board[a]===board[c]){
-      highlight([a,b,c]);
-      return board[a];
-    }
+    if(board[a] && board[a]===board[b] && board[a]===board[c]) return board[a];
   }
   return null;
 }
 
-function checkEnd(){
-  const w = checkWin();
-  if(w){
-    running=false;
-    statusEl.textContent = `Player ${w} wins!`;
+function highlight(winCombo){
+  winCombo.forEach(i=>{
+    boardEl.querySelector(`[data-i='${i}']`).classList.add("win");
+  });
+}
+
+/* ✅ Central end checker — fixes win timing */
+function endCheck(winner){
+  if(winner){
+    running = false;
+    highlightWinCombo(winner);
+    statusEl.textContent = `Player ${winner} Wins!`;
     return true;
   }
   if(board.every(v=>v!==null)){
-    running=false;
+    running = false;
     statusEl.textContent = "Draw!";
     return true;
   }
   return false;
 }
 
-function highlight(combo){
-  combo.forEach(i=>{
-    boardEl.querySelector(`[data-i='${i}']`).classList.add("win");
-  });
+function highlightWinCombo(winner){
+  for(const combo of wins){
+    if(board[combo[0]]===winner && board[combo[1]]===winner && board[combo[2]]===winner){
+      highlight(combo);
+    }
+  }
 }
 
-// ---- UI ----
 function updateStatus(){
   if(!running) return;
-  statusEl.textContent=`Player ${current}'s turn ${mode==="cpu"?"(vs CPU)":""}`;
+  statusEl.textContent = `Player ${current}'s turn ${mode==="cpu"?"(vs CPU)":""}`;
 }
 
 function restart(){
-  board=Array(9).fill(null);
+  board = Array(9).fill(null);
   current="X"; running=true;
   buildBoard();
-  statusEl.textContent=`Player X's turn${mode==="cpu"?" (vs CPU)":""}`;
+  statusEl.textContent = `Player X's turn ${mode==="cpu"?"(vs CPU)":""}`;
 }
 
 function setMode(m){
-  mode=m;
-  restart();
+  mode=m; restart();
 }
 </script>
-</body>
-</html>
